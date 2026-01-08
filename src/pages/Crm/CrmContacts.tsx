@@ -46,11 +46,15 @@ import {
   deleteContact,
 } from "../../slices/crm/thunk";
 
+import { jwtDecode } from "jwt-decode";
+import { api } from "../../services/api";
+import { getToken } from "../../services/auth";
+
 // Componente Principal
 const CrmContacts = () => {
   const dispatch: any = useDispatch();
 
-  // Selector de Redux
+  // Selector de Redux (Clientes normales)
   const selectCrmState = createSelector(
     (state: any) => state.Crm,
     (crm) => ({
@@ -66,192 +70,207 @@ const CrmContacts = () => {
   const [contactToEdit, setContactToEdit] = useState<any>(null);
   const [info, setInfo] = useState<any>(null);
   const [modal, setModal] = useState<boolean>(false);
-  // Ya no necesitamos el estado para el modal de borrado: const [deleteModal, setDeleteModal] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
-  // Cargar los clientes
-  useEffect(() => {
-    dispatch(getContacts());
-  }, [dispatch]);
+  // Estados Super Admin
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [tenantList, setTenantList] = useState<any[]>([]);
+  const [superLoading, setSuperLoading] = useState(false);
 
-  // Seleccionar primer cliente
+  // Check Role
   useEffect(() => {
-    if (clients && clients.length > 0) {
-      const currentInfoExists = info && clients.some((c: any) => c.id === info.id);
+    try {
+      const t = getToken();
+      if (t) {
+        const dec: any = jwtDecode(t);
+        if (dec?.user?.role_id === 99) setIsSuperAdmin(true);
+      }
+    } catch (e) { }
+  }, []);
+
+  // Cargar datos (Clientes o Tenants)
+  useEffect(() => {
+    if (isSuperAdmin) {
+      setSuperLoading(true);
+      api.get('/tenants')
+        .then(({ data }: any) => setTenantList(data))
+        .catch((err: any) => console.error(err))
+        .finally(() => setSuperLoading(false));
+    } else {
+      dispatch(getContacts());
+    }
+  }, [dispatch, isSuperAdmin]);
+
+  // Data Source Switch
+  const dataToRender = isSuperAdmin ? tenantList : clients;
+  const isLoading = isSuperAdmin ? superLoading : loading;
+
+  // Seleccionar primer item
+  useEffect(() => {
+    if (dataToRender && dataToRender.length > 0) {
+      const currentInfoExists = info && dataToRender.some((c: any) => c.id === info.id);
       if (!currentInfoExists) {
-        setInfo(clients[0]);
+        setInfo(dataToRender[0]);
       }
     } else {
       setInfo(null);
     }
-  }, [clients, info]);
+  }, [dataToRender, info]);
 
-  // Toggle para el modal de Crear/Editar
+  // Toggle Modal
   const toggle = useCallback(() => {
-    if (modal) {
-      setModal(false);
-      setContactToEdit(null);
-      setShowPassword(false);
-    } else {
-      setModal(true);
-    }
-  }, [modal]);
+    setModal((prevState) => !prevState);
+  }, []);
 
-  // Handler para "Agregar Cliente"
+  // Handle Add Client
   const handleAddClientClick = () => {
-    setIsEdit(false);
     setContactToEdit(null);
-    validation.resetForm();
+    setIsEdit(false);
     toggle();
   };
 
-  // Handler para "Editar"
-  const handleEditClick = useCallback((clientData: any) => {
-    setIsEdit(true);
-    const nameParts = clientData.name.split(' ');
-    const firstName = nameParts[0] || '';
-    const lastName = nameParts.slice(1).join(' ');
-
+  // Handle Edit Client
+  const handleEditClick = useCallback((arg: any) => {
+    const contact = arg;
     setContactToEdit({
-      id: clientData.id,
-      first_name: firstName,
-      last_name: lastName,
-      email: clientData.email,
-      phone: clientData.phone,
+      id: contact.id,
+      first_name: contact.name ? contact.name.split(' ')[0] : '',
+      last_name: contact.name ? contact.name.split(' ').slice(1).join(' ') : '',
+      email: contact.email,
+      phone: contact.phone,
     });
+    setIsEdit(true);
     toggle();
   }, [toggle]);
 
-  // Handler para la eliminación con SweetAlert2
-  const onClickDelete = (clientData: any) => {
+  // Handle Delete Client
+  const onClickDelete = (contact: any) => {
     Swal.fire({
       title: '¿Estás seguro?',
-      text: `Estás a punto de eliminar a ${clientData.name}. ¡No podrás revertir esto!`,
+      text: "No podrás revertir esto",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Sí, ¡eliminar!',
-      cancelButtonText: 'Cancelar'
+      confirmButtonText: 'Sí, eliminarlo'
     }).then((result) => {
       if (result.isConfirmed) {
-        handleDeleteContact(clientData.id);
+        dispatch(deleteContact(contact.id));
       }
     });
   };
 
-  const handleDeleteContact = async (contactId: string) => {
-    if (contactId) {
-      try {
-        const resultAction = await dispatch(deleteContact(contactId));
-        unwrapResult(resultAction);
-        Swal.fire(
-          '¡Eliminado!',
-          'El cliente ha sido eliminado con éxito.',
-          'success'
-        );
-      } catch (err) {
-        Swal.fire(
-          'Error',
-          'Ocurrió un error al eliminar el cliente.',
-          'error'
-        );
-      }
-    }
-  };
-
-  // Formik para Clientes
-  const validation = useFormik({
+  // Form Validation
+  const validation: any = useFormik({
     enableReinitialize: true,
     initialValues: {
-      first_name: (contactToEdit && contactToEdit.first_name) || "",
-      last_name: (contactToEdit && contactToEdit.last_name) || "",
-      email: (contactToEdit && contactToEdit.email) || "",
-      phone: (contactToEdit && contactToEdit.phone) || "",
-      password: "",
+      first_name: (contactToEdit && contactToEdit.first_name) || '',
+      last_name: (contactToEdit && contactToEdit.last_name) || '',
+      email: (contactToEdit && contactToEdit.email) || '',
+      phone: (contactToEdit && contactToEdit.phone) || '',
+      password: '',
     },
     validationSchema: Yup.object({
-      first_name: Yup.string().required("El nombre es obligatorio"),
-      email: Yup.string().email("Debe ser un email válido").required("El email es obligatorio"),
-      phone: Yup.string().optional(),
-      password: Yup.string().when('isEdit', {
-        is: false,
-        then: (schema) => schema.min(6, "La contraseña debe tener al menos 6 caracteres").required("La contraseña es obligatoria"),
-        otherwise: (schema) => schema.optional(),
-      }),
+      first_name: Yup.string().required("Por favor ingrese el nombre"),
+      last_name: Yup.string().required("Por favor ingrese el apellido"),
+      email: Yup.string().email("Email inválido").required("Por favor ingrese el email"),
+      password: isEdit ? Yup.string() : Yup.string().required("La contraseña es obligatoria"),
     }),
-    onSubmit: async (values, { setSubmitting, resetForm }) => {
-      const clientData = {
-        first_name: values.first_name,
-        last_name: values.last_name,
-        email: values.email,
-        phone: values.phone,
-        ...(values.password && !isEdit && { password: values.password }),
-      };
-
-      try {
-        if (isEdit) {
-          const resultAction = await dispatch(updateContact({ id: contactToEdit.id, ...clientData }));
-          unwrapResult(resultAction);
-          Swal.fire({ title: "¡Éxito!", text: "Cliente actualizado con éxito.", icon: "success" });
-        } else {
-          const resultAction = await dispatch(addNewContact(clientData));
-          unwrapResult(resultAction);
-          Swal.fire({ title: "¡Éxito!", text: "Cliente creado con éxito.", icon: "success" });
-        }
-        resetForm();
-        toggle();
-      } catch (err: any) {
-        Swal.fire({ title: "Error", text: err.error || "Ocurrió un error", icon: "error" });
-      } finally {
-        setSubmitting(false);
+    onSubmit: (values) => {
+      if (isEdit) {
+        const updateContactData = {
+          id: contactToEdit ? contactToEdit.id : 0,
+          name: values.first_name + ' ' + values.last_name,
+          email: values.email,
+          phone: values.phone,
+          // Add other fields if necessary
+        };
+        dispatch(updateContact(updateContactData));
+      } else {
+        const newContactData = {
+          first_name: values.first_name,
+          last_name: values.last_name,
+          email: values.email,
+          phone: values.phone,
+          password: values.password,
+        };
+        dispatch(addNewContact(newContactData));
       }
+      validation.resetForm();
+      toggle();
     },
   });
 
-  // Columnas de la tabla
+  // Columnas Dinámicas
   const columns = useMemo(
-    () => [
-      {
-        header: "Cliente", accessorKey: "name", enableColumnFilter: false,
-        cell: (cell: any) => {
-          const rowData = cell.row.original;
-          return (
-            <div className="d-flex align-items-center" role="button" tabIndex={0} onClick={() => setInfo(rowData)} style={{ cursor: "pointer" }}>
-              <div className="flex-shrink-0"><img src={rowData.img || dummyImg} alt="" className="avatar-xs rounded-circle" /></div>
-              <div className="flex-grow-1 ms-2 name">{cell.getValue()}</div>
-            </div>
-          );
+    () => {
+      if (isSuperAdmin) {
+        return [
+          {
+            header: "Empresa", accessorKey: "name", enableColumnFilter: false,
+            cell: (cell: any) => (
+              <div className="d-flex align-items-center" role="button" onClick={() => setInfo(cell.row.original)} style={{ cursor: "pointer" }}>
+                <div className="flex-shrink-0"><img src={cell.row.original.logo_url || dummyImg} alt="" className="avatar-xs rounded-circle" /></div>
+                <div className="flex-grow-1 ms-2 fw-medium">{cell.getValue()}</div>
+              </div>
+            )
+          },
+          { header: "NIT / Tax ID", accessorKey: "tax_id", enableColumnFilter: false },
+          { header: "Email", accessorKey: "email", enableColumnFilter: false },
+          { header: "Teléfono", accessorKey: "phone", enableColumnFilter: false },
+          {
+            header: "Fecha Creación", accessorKey: "created_at", enableColumnFilter: false,
+            cell: (cell: any) => new Date(cell.getValue()).toLocaleDateString()
+          }
+        ];
+      }
+      // Columnas Normales (Clientes)
+      return [
+        {
+          header: "Cliente", accessorKey: "name", enableColumnFilter: false,
+          cell: (cell: any) => {
+            const rowData = cell.row.original;
+            return (
+              <div className="d-flex align-items-center" role="button" tabIndex={0} onClick={() => setInfo(rowData)} style={{ cursor: "pointer" }}>
+                <div className="flex-shrink-0"><img src={rowData.img || dummyImg} alt="" className="avatar-xs rounded-circle" /></div>
+                <div className="flex-grow-1 ms-2 name">{cell.getValue()}</div>
+              </div>
+            );
+          },
         },
-      },
-      { header: "Email", accessorKey: "email", enableColumnFilter: false },
-      { header: "Teléfono", accessorKey: "phone", enableColumnFilter: false },
-      { header: "Total Servicios", accessorKey: "cantidadServicios", enableColumnFilter: false },
-      {
-        header: "Últimos Servicios", accessorKey: "tags", enableColumnFilter: false,
-        cell: (cell: any) => (
-          <div className="d-flex flex-wrap gap-1">
-            {(cell.getValue() || []).map((item: any, key: any) => (
-              <span className="badge bg-primary-subtle text-primary" key={key}>{item}</span>
-            ))}
-          </div>
-        ),
-      },
-      {
-        header: "Acciones",
-        cell: (cellProps: any) => (
-          <UncontrolledDropdown>
-            <DropdownToggle href="#" className="btn btn-soft-primary btn-sm dropdown" tag="button"><i className="ri-more-fill align-middle"></i></DropdownToggle>
-            <DropdownMenu className="dropdown-menu-end">
-              <DropdownItem onClick={() => setInfo(cellProps.row.original)}><i className="ri-eye-fill align-bottom me-2 text-muted"></i> Ver</DropdownItem>
-              <DropdownItem onClick={() => handleEditClick(cellProps.row.original)}><i className="ri-pencil-fill align-bottom me-2 text-muted"></i> Editar</DropdownItem>
-              <DropdownItem onClick={() => onClickDelete(cellProps.row.original)}><i className="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Eliminar</DropdownItem>
-            </DropdownMenu>
-          </UncontrolledDropdown>
-        ),
-      },
-    ],
-    [handleEditClick]
+        { header: "Email", accessorKey: "email", enableColumnFilter: false },
+        { header: "Teléfono", accessorKey: "phone", enableColumnFilter: false },
+        { header: "Total Servicios", accessorKey: "cantidadServicios", enableColumnFilter: false },
+        {
+          header: "Últimos Servicios", accessorKey: "tags", enableColumnFilter: false,
+          cell: (cell: any) => (
+            <div className="d-flex flex-wrap gap-1">
+              {(cell.getValue() || []).map((item: any, key: any) => (
+                <span className="badge bg-primary-subtle text-primary" key={key}>{item}</span>
+              ))}
+            </div>
+          ),
+        },
+        {
+          header: "Acciones",
+          cell: (cellProps: any) => (
+            <UncontrolledDropdown>
+              <DropdownToggle href="#" className="btn btn-soft-primary btn-sm dropdown" tag="button"><i className="ri-more-fill align-middle"></i></DropdownToggle>
+              <DropdownMenu className="dropdown-menu-end">
+                <DropdownItem onClick={() => setInfo(cellProps.row.original)}><i className="ri-eye-fill align-bottom me-2 text-muted"></i> Ver Detalles</DropdownItem>
+                {!isSuperAdmin && (
+                  <>
+                    <DropdownItem onClick={() => handleEditClick(cellProps.row.original)}><i className="ri-pencil-fill align-bottom me-2 text-muted"></i> Editar</DropdownItem>
+                    <DropdownItem onClick={() => onClickDelete(cellProps.row.original)}><i className="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Eliminar</DropdownItem>
+                  </>
+                )}
+              </DropdownMenu>
+            </UncontrolledDropdown>
+          ),
+        },
+      ];
+    },
+    [handleEditClick, isSuperAdmin]
   );
 
   document.title = "Clientes | CRM";
@@ -275,18 +294,18 @@ const CrmContacts = () => {
             <Col xxl={9}>
               <Card id="contactList">
                 <CardBody className="pt-0">
-                  {loading && clients.length === 0 ? <Loader /> : (
+                  {isLoading && (!dataToRender || dataToRender.length === 0) ? <Loader /> : (
                     <TableContainer
                       columns={columns}
-                      data={clients || []}
+                      data={dataToRender || []}
                       isGlobalFilter={true}
-                      customPageSize={5}
+                      customPageSize={10}
                       divClass="table-responsive table-card mb-3"
                       tableClass="align-middle table-nowrap"
                       theadClass="table-light"
                     />
                   )}
-                  {!loading && error && <div className="alert alert-danger mt-3">Error al cargar los clientes: {error.error || 'Error desconocido'}</div>}
+                  {!isLoading && error && !isSuperAdmin && <div className="alert alert-danger mt-3">Error al cargar los clientes: {error.error || 'Error desconocido'}</div>}
                 </CardBody>
               </Card>
             </Col>
@@ -295,33 +314,44 @@ const CrmContacts = () => {
                 {info ? (
                   <>
                     <CardBody className="text-center">
-                      <div className="position-relative d-inline-block"><img src={info.img || dummyImg} alt="" className="avatar-lg rounded-circle img-thumbnail" /></div>
-                      <h5 className="mt-4 mb-1">{info.name}</h5>
+                      <div className="position-relative d-inline-block"><img src={info.img || info.logo_url || dummyImg} alt="" className="avatar-lg rounded-circle img-thumbnail" /></div>
+                      <h5 className="mt-4 mb-1">{isSuperAdmin ? info.name : info.name}</h5>
+                      {isSuperAdmin && <p className="text-muted mb-0">{info.business_name}</p>}
                     </CardBody>
                     <CardBody>
-                      <h6 className="text-muted text-uppercase fw-semibold mb-3">Información personal</h6>
+                      <h6 className="text-muted text-uppercase fw-semibold mb-3">Información {isSuperAdmin ? 'Empresarial' : 'Personal'}</h6>
                       <div className="table-responsive table-card">
                         <Table className="table table-borderless mb-0">
                           <tbody>
                             <tr><td className="fw-medium">Email</td><td>{info.email || 'N/A'}</td></tr>
                             <tr><td className="fw-medium">Teléfono</td><td>{info.phone || 'N/A'}</td></tr>
-                            <tr><td className="fw-medium">Total Servicios</td><td>{info.cantidadServicios}</td></tr>
-                            <tr>
-                              <td className="fw-medium">Últimos servicios</td>
-                              <td>
-                                {(info.tags && info.tags.length > 0) ? info.tags.map((item: any, key: any) => (
-                                  <span className="badge bg-primary-subtle text-primary me-1" key={key}>{item}</span>
-                                )) : 'Sin servicios registrados'}
-                              </td>
-                            </tr>
+                            {isSuperAdmin ? (
+                              <>
+                                <tr><td className="fw-medium">NIT</td><td>{info.tax_id || 'N/A'}</td></tr>
+                                <tr><td className="fw-medium">Dirección</td><td>{info.address || 'N/A'}</td></tr>
+                                <tr><td className="fw-medium">Ciudad</td><td>{info.city || 'N/A'}</td></tr>
+                              </>
+                            ) : (
+                              <>
+                                <tr><td className="fw-medium">Total Servicios</td><td>{info.cantidadServicios}</td></tr>
+                                <tr>
+                                  <td className="fw-medium">Últimos servicios</td>
+                                  <td>
+                                    {(info.tags && info.tags.length > 0) ? info.tags.map((item: any, key: any) => (
+                                      <span className="badge bg-primary-subtle text-primary me-1" key={key}>{item}</span>
+                                    )) : 'Sin servicios registrados'}
+                                  </td>
+                                </tr>
+                              </>
+                            )}
                           </tbody>
                         </Table>
                       </div>
                     </CardBody>
                   </>
                 ) : (
-                  <CardBody className="d-flex justify-content-center align-items-center" style={{minHeight: '400px'}}>
-                    <p>{loading ? 'Cargando...' : 'Seleccione un cliente o cree uno nuevo'}</p>
+                  <CardBody className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
+                    <p>{isLoading ? 'Cargando...' : 'Seleccione un elemento de la lista'}</p>
                   </CardBody>
                 )}
               </Card>
@@ -359,17 +389,17 @@ const CrmContacts = () => {
                 <Col md={12}>
                   <Label htmlFor="password-field">Contraseña</Label>
                   <InputGroup>
-                    <Input 
-                      name="password" 
+                    <Input
+                      name="password"
                       type={showPassword ? "text" : "password"}
-                      onChange={validation.handleChange} 
-                      onBlur={validation.handleBlur} 
-                      value={validation.values.password} 
-                      invalid={!!(validation.touched.password && validation.errors.password)} 
+                      onChange={validation.handleChange}
+                      onBlur={validation.handleBlur}
+                      value={validation.values.password}
+                      invalid={!!(validation.touched.password && validation.errors.password)}
                     />
-                    <button 
-                      className="btn btn-light" 
-                      type="button" 
+                    <button
+                      className="btn btn-light"
+                      type="button"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       <i className={showPassword ? "ri-eye-off-fill" : "ri-eye-fill"}></i>

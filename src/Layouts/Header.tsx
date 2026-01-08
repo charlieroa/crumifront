@@ -21,14 +21,17 @@ import { changeSidebarVisibility } from '../slices/thunks';
 import { useSelector, useDispatch } from "react-redux";
 import { createSelector } from 'reselect';
 
-const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }: any) => {
-    const dispatch: any = useDispatch();
+const Header = ({ onChangeLayoutMode, layoutModeType, headerClass } : any) => {
+    const dispatch : any = useDispatch();
+
 
     const selectDashboardData = createSelector(
-        (state: any) => state.Layout,
-        (layout) => layout.sidebarVisibilitytype // Corregido para seleccionar la propiedad correcta
-    );
+        (state) => state.Layout,
+        (sidebarVisibilitytype) => sidebarVisibilitytype.sidebarVisibilitytype
+      );
+    // Inside your component
     const sidebarVisibilitytype = useSelector(selectDashboardData);
+    
 
     const [search, setSearch] = useState<boolean>(false);
     const toogleSearch = () => {
@@ -62,6 +65,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }: any) => {
             }
         }
 
+
         //Two column menu
         if (document.documentElement.getAttribute('data-layout') === "twocolumn") {
             document.body.classList.contains('twocolumn-panel') ? document.body.classList.remove('twocolumn-panel') : document.body.classList.add('twocolumn-panel');
@@ -81,7 +85,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }: any) => {
                                         <img src={logoSm} alt="" height="22" />
                                     </span>
                                     <span className="logo-lg">
-                                        <img src={logoDark} alt="" height="150" />
+                                        <img src={logoDark} alt="" height="17" />
                                     </span>
                                 </Link>
 
@@ -90,7 +94,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }: any) => {
                                         <img src={logoSm} alt="" height="22" />
                                     </span>
                                     <span className="logo-lg">
-                                        <img src={logoLight} alt="" height="150" />
+                                        <img src={logoLight} alt="" height="17" />
                                     </span>
                                 </Link>
                             </div>
@@ -98,7 +102,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }: any) => {
                             <button
                                 onClick={toogleMenuBtn}
                                 type="button"
-                                className="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger shadow-none"
+                                className="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger"
                                 id="topnav-hamburger-icon">
                                 <span className="hamburger-icon">
                                     <span></span>
@@ -106,6 +110,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }: any) => {
                                     <span></span>
                                 </span>
                             </button>
+
 
                             <SearchOption />
                         </div>
@@ -130,12 +135,15 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }: any) => {
                                 </DropdownMenu>
                             </Dropdown>
 
-                            {/* --- COMPONENTES COMENTADOS --- */}
-                            {/* <LanguageDropdown /> */}
-                            {/* <WebAppsDropdown /> */}
-                            {/* <MyCartDropdown /> */}
-                            {/* --- FIN DE COMPONENTES COMENTADOS --- */}
-                            
+                            {/* LanguageDropdown */}
+                            <LanguageDropdown />
+
+                            {/* WebAppsDropdown */}
+                            <WebAppsDropdown />
+
+                            {/* MyCartDropdwon */}
+                            <MyCartDropdown />
+
                             {/* FullScreenDropdown */}
                             <FullScreenDropdown />
 
@@ -145,10 +153,10 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }: any) => {
                                 onChangeLayoutMode={onChangeLayoutMode}
                             />
 
-                            {/* --- COMPONENTE COMENTADO --- */}
-                            {/* <NotificationDropdown /> */}
-                            
-                            {/* ProfileDropdown (Recomendado mantener para el logout) */}
+                            {/* NotificationDropdown */}
+                            <NotificationDropdown />
+
+                            {/* ProfileDropdown */}
                             <ProfileDropdown />
                         </div>
                     </div>

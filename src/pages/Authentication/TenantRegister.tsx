@@ -13,7 +13,7 @@ import logoLight from "../../assets/images/logo-light.png";
 import ParticlesAuth from '../AuthenticationInner/ParticlesAuth';
 
 const TenantRegister = () => {
-    document.title = "Crear Cuenta de Peluquería | Sistema de Peluquerías";
+    document.title = "Crear Cuenta de Empresa | Crumi";
 
     const navigate = useNavigate();
     const dispatch = useDispatch<any>();
@@ -31,47 +31,42 @@ const TenantRegister = () => {
     );
     const { success, error } = useSelector(registerData);
 
-    // Console.log final para depuración
-   
-
     const validation = useFormik({
         initialValues: {
             tenantName: '',
-            adminFirstName: '',
             adminEmail: '',
             adminPassword: '',
         },
         validationSchema: Yup.object({
-            tenantName: Yup.string().required("Por favor, ingrese el nombre de la peluquería"),
-            adminFirstName: Yup.string().required("Por favor, ingrese su nombre"),
+            tenantName: Yup.string().required("Por favor, ingrese el nombre de la empresa"),
             adminEmail: Yup.string().required("Por favor, ingrese un email").email("Email inválido"),
             adminPassword: Yup.string().required("Por favor, ingrese una contraseña").min(6, "La contraseña debe tener al menos 6 caracteres"),
         }),
         onSubmit: (values) => {
             setIsLoading(true);
-            dispatch(registerTenant(values));
+            // Agregar adminFirstName automáticamente desde el email
+            const dataToSend = {
+                ...values,
+                adminFirstName: values.adminEmail.split('@')[0], // Toma el nombre antes del @
+            };
+            dispatch(registerTenant(dataToSend));
         },
     });
 
-    // --- useEffect CORREGIDO ---
     useEffect(() => {
-        // Manejo del caso de ÉXITO
         if (success) {
             const timer = setTimeout(() => {
                 navigate('/login');
             }, 3000);
 
-            // La limpieza del estado ahora SOLO se asocia con el éxito
             return () => {
                 clearTimeout(timer);
                 dispatch(resetTenantRegisterFlag());
             };
         }
 
-        // Manejo del caso de ERROR
         if (error) {
             setIsLoading(false);
-            // Opcional: Limpiar el mensaje de error después de 5 segundos
             const errorTimer = setTimeout(() => dispatch(resetTenantRegisterFlag()), 5000);
             return () => clearTimeout(errorTimer);
         }
@@ -87,40 +82,68 @@ const TenantRegister = () => {
                                 <Card className="mt-4">
                                     <CardBody className="p-4">
                                         <div className="text-center mt-2">
-                                            <h5 className="text-primary">Crear Cuenta de Peluquería</h5>
-                                            <p className="text-muted">Empieza a gestionar tu negocio hoy mismo.</p>
+                                            <h5 className="text-primary">Crear Cuenta</h5>
+                                            <p className="text-muted">Empieza a gestionar tu empresa hoy mismo.</p>
+                                        </div>
+
+                                        <div className="mt-4 mb-3">
+                                            <Button
+                                                color="danger"
+                                                className="w-100"
+                                                type="button"
+                                                onClick={() => {
+                                                    window.location.href = "http://localhost:5000/api/auth/google";
+                                                }}
+                                            >
+                                                <i className="ri-google-fill fs-16 me-2"></i> Registrarse con Google
+                                            </Button>
+                                            <div className="text-center mt-2 text-muted small">O usa tu email</div>
                                         </div>
                                         {success && (<Alert color="success" fade={false}>¡Registro exitoso! Serás redirigido para que inicies sesión.</Alert>)}
                                         {error && (<Alert color="danger" fade={false}>{error}</Alert>)}
 
                                         <div className="p-2 mt-4">
                                             <Form onSubmit={(e) => { e.preventDefault(); validation.handleSubmit(); }}>
-                                                
+
                                                 <div className="mb-3">
-                                                    <label htmlFor="tenantName" className="form-label">Nombre de tu Peluquería <span className="text-danger">*</span></label>
-                                                    <Input name="tenantName" type="text" placeholder="Ej: Salón Glamour" onChange={validation.handleChange} onBlur={validation.handleBlur} value={validation.values.tenantName} invalid={!!(validation.touched.tenantName && validation.errors.tenantName)} />
-                                                    {validation.touched.tenantName && validation.errors.tenantName ? <FormFeedback type="invalid">{validation.errors.tenantName as string}</FormFeedback> : null}
+                                                    <label htmlFor="tenantName" className="form-label">Nombre de tu Empresa <span className="text-danger">*</span></label>
+                                                    <Input
+                                                        name="tenantName"
+                                                        type="text"
+                                                        placeholder="Ej: Mi Empresa S.A.S"
+                                                        onChange={validation.handleChange}
+                                                        onBlur={validation.handleBlur}
+                                                        value={validation.values.tenantName}
+                                                        invalid={!!(validation.touched.tenantName && validation.errors.tenantName)}
+                                                    />
+                                                    {validation.touched.tenantName && validation.errors.tenantName ?
+                                                        <FormFeedback type="invalid">{validation.errors.tenantName as string}</FormFeedback>
+                                                        : null}
                                                 </div>
 
                                                 <div className="mb-3">
-                                                    <label htmlFor="adminFirstName" className="form-label">Tu Nombre <span className="text-danger">*</span></label>
-                                                    <Input name="adminFirstName" type="text" placeholder="Ej: Ana López" onChange={validation.handleChange} onBlur={validation.handleBlur} value={validation.values.adminFirstName} invalid={!!(validation.touched.adminFirstName && validation.errors.adminFirstName)} />
-                                                    {validation.touched.adminFirstName && validation.errors.adminFirstName ? <FormFeedback type="invalid">{validation.errors.adminFirstName as string}</FormFeedback> : null}
+                                                    <label htmlFor="adminEmail" className="form-label">Email <span className="text-danger">*</span></label>
+                                                    <Input
+                                                        name="adminEmail"
+                                                        type="email"
+                                                        placeholder="tu@email.com"
+                                                        onChange={validation.handleChange}
+                                                        onBlur={validation.handleBlur}
+                                                        value={validation.values.adminEmail}
+                                                        invalid={!!(validation.touched.adminEmail && validation.errors.adminEmail)}
+                                                    />
+                                                    {validation.touched.adminEmail && validation.errors.adminEmail ?
+                                                        <FormFeedback type="invalid">{validation.errors.adminEmail as string}</FormFeedback>
+                                                        : null}
                                                 </div>
 
-                                                <div className="mb-3">
-                                                    <label htmlFor="adminEmail" className="form-label">Tu Email <span className="text-danger">*</span></label>
-                                                    <Input name="adminEmail" type="email" placeholder="Para iniciar sesión" onChange={validation.handleChange} onBlur={validation.handleBlur} value={validation.values.adminEmail} invalid={!!(validation.touched.adminEmail && validation.errors.adminEmail)} />
-                                                    {validation.touched.adminEmail && validation.errors.adminEmail ? <FormFeedback type="invalid">{validation.errors.adminEmail as string}</FormFeedback> : null}
-                                                </div>
-                                                
                                                 <div className="mb-3">
                                                     <label className="form-label" htmlFor="adminPassword">Contraseña <span className="text-danger">*</span></label>
                                                     <div className="position-relative auth-pass-inputgroup">
                                                         <Input
                                                             name="adminPassword"
                                                             type={showPassword ? "text" : "password"}
-                                                            placeholder="Crea una contraseña segura"
+                                                            placeholder="Mínimo 6 caracteres"
                                                             onChange={validation.handleChange}
                                                             onBlur={validation.handleBlur}
                                                             value={validation.values.adminPassword}
@@ -133,7 +156,9 @@ const TenantRegister = () => {
                                                         >
                                                             <i className={showPassword ? "ri-eye-off-fill" : "ri-eye-fill"}></i>
                                                         </button>
-                                                        {validation.touched.adminPassword && validation.errors.adminPassword ? <FormFeedback type="invalid">{validation.errors.adminPassword as string}</FormFeedback> : null}
+                                                        {validation.touched.adminPassword && validation.errors.adminPassword ?
+                                                            <FormFeedback type="invalid">{validation.errors.adminPassword as string}</FormFeedback>
+                                                            : null}
                                                     </div>
                                                 </div>
 

@@ -6,9 +6,10 @@ import { useSelector } from "react-redux";
 import { createSelector } from 'reselect';
 
 const NonAuthLayout = ({ children } : any) => {
+
     const nonauthData = createSelector(
-        (state :any) => state.Layout.layoutModeType,
-        (layoutModeType : any) => layoutModeType
+        (state) => state.Layout,
+        (layoutModeType) => layoutModeType.layoutModeType
       );
     // Inside your component
     const layoutModeType = useSelector(nonauthData);
@@ -20,8 +21,8 @@ const NonAuthLayout = ({ children } : any) => {
             document.body.setAttribute("data-bs-theme", "light");
         }
         return () => {
-            document.body.removeAttribute("data-bs-theme")
-        }
+            document.body.removeAttribute("data-bs-theme");
+        };
     }, [layoutModeType]);
     return (
         <div>

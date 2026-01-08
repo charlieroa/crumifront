@@ -16,7 +16,7 @@ import logoLight from "../../assets/images/logo-light.png";
 import ParticlesAuth from '../AuthenticationInner/ParticlesAuth';
 
 const Register = () => {
-    document.title = "Registro | Sistema de Peluquerías";
+    document.title = "Registro | Crumi";
 
     const navigate = useNavigate();
     const dispatch = useDispatch<any>();
@@ -74,7 +74,7 @@ const Register = () => {
                                         {error && (<Alert color="danger">{error.message || "Ha ocurrido un error."}</Alert>)}
                                         <div className="p-2 mt-4">
                                             <Form onSubmit={(e) => { e.preventDefault(); validation.handleSubmit(); }}>
-                                                
+
                                                 <div className="mb-3">
                                                     <label htmlFor="email" className="form-label">Email <span className="text-danger">*</span></label>
                                                     <Input name="email" type="email" placeholder="Ingresa tu email" onChange={validation.handleChange} onBlur={validation.handleBlur} value={validation.values.email} invalid={!!(validation.touched.email && validation.errors.email)} />

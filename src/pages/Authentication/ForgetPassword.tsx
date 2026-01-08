@@ -52,7 +52,7 @@ const ForgetPasswordPage = (props: any) => {
     forgetError, forgetSuccessMsg
   } = useSelector(selectLayoutProperties);
 
-  document.title = "Reset Password | Velzon - React Admin & Dashboard Template";
+  document.title = "Restablecer Contraseña | Crumi";
   return (
     <React.Fragment>
       <ParticlesAuth>
@@ -79,7 +79,7 @@ const ForgetPasswordPage = (props: any) => {
                   <CardBody className="p-4">
                     <div className="text-center mt-2">
                       <h5 className="text-primary">Forgot Password?</h5>
-                      <p className="text-muted">Reset password with velzon</p>
+                      <p className="text-muted">Restablecer contraseña de Crumi</p>
 
                       <i className="ri-mail-send-line display-5 text-success mb-3"></i>
 

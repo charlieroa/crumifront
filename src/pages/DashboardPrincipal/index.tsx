@@ -9,10 +9,10 @@ import Calendar from '../Calendar';
 import DashboardCrm from '../DashboardCrm';
 
 // Interfaz vacía para mantener la estructura de TypeScript, aunque no recibimos props.
-interface IProps {}
+interface IProps { }
 
 const DashboardPrincipal: React.FC<IProps> = () => {
-    document.title = "Dashboard | Sistema de Peluquerías";
+    document.title = "Dashboard | Crumi";
 
     // Estado para controlar qué pestaña está activa.
     const [activeTab, setActiveTab] = useState<string>('1');
@@ -26,7 +26,7 @@ const DashboardPrincipal: React.FC<IProps> = () => {
     return (
         <React.Fragment>
             {/* Contenedor principal con la clase de anulación para eliminar el padding */}
-            <div className="page-content page-content-flush"> 
+            <div className="page-content page-content-flush">
                 <Container fluid>
                     {/* El sistema de Pestañas (Tabs) */}
                     <Nav tabs className="nav-tabs-custom nav-success mb-3">

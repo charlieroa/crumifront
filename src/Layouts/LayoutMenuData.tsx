@@ -1,14 +1,12 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import Swal from "sweetalert2";
 import { getToken } from "../services/auth";
 
 // --- Redux ---
 import { useSelector } from "react-redux";
 import { selectIsSetupComplete } from "../slices/Settings/settingsSlice";
 
-// --- Helper para obtener el rol del usuario desde el token JWT ---
 const getRoleFromToken = (): number | null => {
   try {
     const token = getToken();
@@ -23,36 +21,113 @@ const getRoleFromToken = (): number | null => {
 
 const LayoutMenuData = () => {
   const history = useNavigate();
-  const [isDashboard, setIsDashboard] = useState<boolean>(false);
-  const [isEstilistas, setIsEstilistas] = useState<boolean>(false);
-  const [isInventario, setIsInventario] = useState<boolean>(false);
-  const [iscurrentState, setIscurrentState] = useState("Dashboard");
-
   const userRole = getRoleFromToken();
-
-  // Redux
   const isSetupComplete = useSelector(selectIsSetupComplete);
 
-  useEffect(() => {
-    document.body.classList.remove("twocolumn-panel");
-    if (iscurrentState !== "Dashboard") setIsDashboard(false);
-    if (iscurrentState !== "Estilistas") setIsEstilistas(false);
-    if (iscurrentState !== "Inventario") setIsInventario(false);
-  }, [history, iscurrentState, isDashboard, isEstilistas, isInventario]);
-
   const menuItems: any[] = [
-    { label: "Menú Principal", isHeader: true },
+    // --- SECCIÓN ASISTENTE IA ---
+    {
+      label: "IA",
+      isHeader: true
+    },
+    {
+      id: "onboarding",
+      label: "Asistente IA",
+      icon: "ri-sparkling-line",
+      link: "/onboarding",
+      roles: [1, 2, 3]
+    },
 
-    { id: "flowbuilder", label: "Flow Builder", icon: "ri-flow-chart", link: "/flowbuilder", roles: [1] },
-    { id: "dashboard", label: "Dashboard", icon: "ri-dashboard-2-line", link: "/dashboard", roles: [1, 2, 3] },
-    { id: "stylists", label: "Crm", icon: "ri-user-heart-line", link: "/stylists", roles: [1, 3] },
-    { id: "inventory", label: "Inventario", icon: "ri-archive-line", link: "/inventory", roles: [1] },
-    { id: "payroll", label: "Nómina", icon: "ri-money-dollar-circle-line", link: "/payroll", roles: [1] },
-    { id: "settings", label: "Configuración", icon: "ri-settings-3-line", link: "/settings", roles: [1] },
+    // --- SECCIÓN PRINCIPAL ---
+    {
+      label: "Principal",
+      isHeader: true
+    },
 
+    // Nuevo documento
+    {
+      id: "nuevo",
+      label: "Nuevo",
+      icon: "ri-file-add-line",
+      link: "/ingresos/factura-venta/crear", // ← APUNTA A CREATE.TSX
+      roles: [1]
+    },
+
+    // Documentos (con tabs internos)
+    {
+      id: "documentos",
+      label: "Documentos",
+      icon: "ri-folder-3-line",
+      link: "/ingresos/documentos",
+      roles: [1, 3]
+    },
+
+
+
+    // --- SECCIÓN GESTIÓN ---
+    {
+      label: "Gestión",
+      isHeader: true
+    },
+    // Actividades / Tareas
+    // Actividades / Tareas
+    {
+      id: "kanban-board",
+      label: "Kanban Board",
+      icon: "ri-task-line",
+      link: "/apps/tasks-dashboard",
+      roles: [1, 99]
+    },
+
+    // Personal
+    {
+      id: "personal",
+      label: "Personal",
+      icon: "ri-team-line",
+      link: "/settings?tab=2",
+      roles: [1, 99]
+    },
+
+    // Clientes removed as per request
+
+
+    // Productos
+    {
+      id: "productos",
+      label: "Productos",
+      icon: "ri-shopping-bag-3-line",
+      link: "/productos",
+      roles: [1]
+    },
+
+    // Nómina
+    {
+      id: "payroll",
+      label: "Nómina",
+      icon: "ri-money-dollar-box-line",
+      link: "/payroll",
+      roles: [1]
+    },
+
+    // --- SECCIÓN CONFIGURACIÓN ---
+    {
+      label: "Configuración",
+      isHeader: true
+    },
+
+    // Configuración
+    // {
+    //   id: "settings",
+    //   label: "Ajustes",
+    //   icon: "ri-settings-3-line",
+    //   link: "/settings",
+    //   roles: [1, 99]
+    // },
+
+    // Ayuda
     {
       id: "show-tour",
-      label: "Mostrar Tour",
+      label: "Ayuda",
       icon: "ri-question-line",
       link: "#!",
       roles: [1],
@@ -60,41 +135,15 @@ const LayoutMenuData = () => {
     },
   ];
 
-  // --- Filtrar menú según rol y estado ---
+  // Filtrar menú según rol
   const finalMenuItems = useMemo(() => {
     if (!userRole) return [];
 
-    const roleFiltered = menuItems.filter((item) => {
+    return menuItems.filter((item) => {
       if (!item.roles) return true;
       return item.roles.includes(userRole);
     });
-
-    if (isSetupComplete) {
-      return roleFiltered;
-    }
-
-    // Bloquear menús si setup no está completo
-    return roleFiltered.map((item) => {
-      if (item.id === "settings" || item.isHeader) {
-        return item;
-      }
-
-      return {
-        ...item,
-        icon: "ri-lock-line",
-        disabled: true,
-        onClick: () => {
-          Swal.fire({
-            title: "Configuración Incompleta",
-            text: "Tienes que configurar primero tu negocio para acceder a esta sección.",
-            icon: "warning",
-            confirmButtonText: "Entendido",
-            confirmButtonColor: "#438eff",
-          });
-        },
-      };
-    });
-  }, [userRole, isSetupComplete]);
+  }, [userRole]);
 
   return <React.Fragment>{finalMenuItems}</React.Fragment>;
 };

@@ -1,21 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from "prop-types";
 import withRouter from '../Components/Common/withRouter';
-// Imports para el Tour
 import { useLocation } from 'react-router-dom';
-import Joyride, { CallBackProps, STATUS } from 'react-joyride';
-import { tourSteps } from './tourSteps';
 
 //import Components
 import Header from './Header';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
+import RightSidebar from '../Components/Common/RightSidebar';
+
+// import api and sweetalert
+import { api } from "../services/api";
+import Swal from 'sweetalert2';
+import { useNavigate } from 'react-router-dom';
+
+// import auth utils
+import { getToken } from "../services/auth";
+import { jwtDecode } from "jwt-decode";
 
 //import actions
 import {
-    changeLayout, changeSidebarTheme, changeLayoutMode,
-    changeLayoutWidth, changeLayoutPosition, changeTopbarTheme,
-    changeLeftsidebarSizeType, changeLeftsidebarViewType, changeSidebarImageType,
+    changeLayout,
+    changeSidebarTheme,
+    changeLayoutMode,
+    changeLayoutWidth,
+    changeLayoutPosition,
+    changeTopbarTheme,
+    changeLeftsidebarSizeType,
+    changeLeftsidebarViewType,
+    changeSidebarImageType,
     changeSidebarVisibility
 } from "../slices/thunks";
 
@@ -23,37 +36,18 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { createSelector } from 'reselect';
 
-// Objeto de estilos para el Tour
-const joyrideStyles = {
-    options: {
-      zIndex: 10000,
-      primaryColor: '#438eff',
-      arrowColor: '#ffffff',
-      backgroundColor: '#ffffff',
-      textColor: '#555',
-    },
-    tooltip: {
-      borderRadius: '0.5rem',
-      padding: '1rem 1.5rem',
-    },
-    buttonNext: {
-      borderRadius: '0.25rem',
-      fontSize: '14px',
-    },
-    buttonBack: {
-      marginRight: 'auto',
-      borderRadius: '0.25rem',
-    },
-};
-
 const Layout = (props: any) => {
+    const [headerClass, setHeaderClass] = useState("");
     const dispatch: any = useDispatch();
-    const {
-        layoutType, leftSidebarType, layoutModeType, layoutWidthType,
-        layoutPositionType, topbarThemeType, leftsidbarSizeType,
-        leftSidebarViewType, leftSidebarImageType, sidebarVisibilitytype
-    } = useSelector(createSelector(
-        (state: any) => state.Layout,
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    // Verificar si estamos en la página de Onboarding
+    const isOnboardingPage = location.pathname === '/onboarding';
+
+    const selectLayoutState = (state: any) => state.Layout;
+    const selectLayoutProperties = createSelector(
+        selectLayoutState,
         (layout) => ({
             layoutType: layout.layoutType,
             leftSidebarType: layout.leftSidebarType,
@@ -64,52 +58,39 @@ const Layout = (props: any) => {
             leftsidbarSizeType: layout.leftsidbarSizeType,
             leftSidebarViewType: layout.leftSidebarViewType,
             leftSidebarImageType: layout.leftSidebarImageType,
+            preloader: layout.preloader,
             sidebarVisibilitytype: layout.sidebarVisibilitytype,
         })
-    ));
-
-    // Lógica para controlar el tour
-    const [runTour, setRunTour] = useState(false);
-    const location = useLocation();
-
-    useEffect(() => {
-        const tourCompleted = localStorage.getItem('settingsTourCompleted');
-        if (!tourCompleted && location.pathname === '/settings') {
-            setTimeout(() => {
-                setRunTour(true);
-            }, 500);
-        }
-    }, [location.pathname]);
-
-    const handleJoyrideCallback = (data: CallBackProps) => {
-        const { status } = data;
-        const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
-        if (finishedStatuses.includes(status)) {
-            setRunTour(false);
-            localStorage.setItem('settingsTourCompleted', 'true');
-        }
-    };
-    
-    // --- FUNCIÓN MEJORADA PARA INICIAR EL TOUR MANUALMENTE ---
-    const startTour = () => {
-        // Primero, navegamos a la página de settings
-        props.router.navigate('/settings');
-
-        // Damos un pequeño respiro para que la página cargue antes de iniciar el tour
-        setTimeout(() => {
-            localStorage.removeItem('settingsTourCompleted');
-            setRunTour(true);
-        }, 150);
-    };
+    );
+    // Inside your component
+    const {
+        layoutType,
+        leftSidebarType,
+        layoutModeType,
+        layoutWidthType,
+        layoutPositionType,
+        topbarThemeType,
+        leftsidbarSizeType,
+        leftSidebarViewType,
+        leftSidebarImageType,
+        sidebarVisibilitytype
+    } = useSelector(selectLayoutProperties);
 
     /*
     layout settings
     */
     useEffect(() => {
         if (
-            layoutType || leftSidebarType || layoutModeType || layoutWidthType ||
-            layoutPositionType || topbarThemeType || leftsidbarSizeType ||
-            leftSidebarViewType || leftSidebarImageType || sidebarVisibilitytype
+            layoutType ||
+            leftSidebarType ||
+            layoutModeType ||
+            layoutWidthType ||
+            layoutPositionType ||
+            topbarThemeType ||
+            leftsidbarSizeType ||
+            leftSidebarViewType ||
+            leftSidebarImageType ||
+            sidebarVisibilitytype
         ) {
             window.dispatchEvent(new Event('resize'));
             dispatch(changeLeftsidebarViewType(leftSidebarViewType));
@@ -124,24 +105,30 @@ const Layout = (props: any) => {
             dispatch(changeSidebarVisibility(sidebarVisibilitytype));
         }
     }, [layoutType,
-        leftSidebarType, layoutModeType, layoutWidthType,
-        layoutPositionType, topbarThemeType, leftsidbarSizeType,
-        leftSidebarViewType, leftSidebarImageType, sidebarVisibilitytype,
+        leftSidebarType,
+        layoutModeType,
+        layoutWidthType,
+        layoutPositionType,
+        topbarThemeType,
+        leftsidbarSizeType,
+        leftSidebarViewType,
+        leftSidebarImageType,
+        sidebarVisibilitytype,
         dispatch]);
-    
+    /*
+    call dark/light mode
+    */
     const onChangeLayoutMode = (value: any) => {
         if (changeLayoutMode) {
             dispatch(changeLayoutMode(value));
         }
     };
 
-    const [headerClass, setHeaderClass] = useState<any>("");
+    // class add remove in header 
     useEffect(() => {
-        const scrollHandler = () => scrollNavigation();
-        window.addEventListener("scroll", scrollHandler, true);
-        return () => window.removeEventListener("scroll", scrollHandler, true);
-    }, []);
-    
+        window.addEventListener("scroll", scrollNavigation, true);
+    });
+
     function scrollNavigation() {
         var scrollup = document.documentElement.scrollTop;
         if (scrollup > 50) {
@@ -153,48 +140,70 @@ const Layout = (props: any) => {
 
     useEffect(() => {
         const humberIcon = document.querySelector(".hamburger-icon") as HTMLElement;
-        if (humberIcon) {
-            if (sidebarVisibilitytype === 'show' || layoutType === "vertical" || layoutType === "twocolumn") {
-                humberIcon.classList.remove('open');
-            } else {
-                humberIcon.classList.add('open');
-            }
+        if (sidebarVisibilitytype === 'show' || layoutType === "vertical" || layoutType === "twocolumn") {
+            humberIcon?.classList.remove('open');
+        } else {
+            humberIcon && humberIcon.classList.add('open');
         }
     }, [sidebarVisibilitytype, layoutType]);
 
+    // --- NUEVO: Verificación de configuración inicial ---
+    useEffect(() => {
+        const exemptRoutes = ['/settings', '/login', '/register', '/register-tenant', '/forgot-password', '/auth-google-callback'];
+        if (exemptRoutes.some(r => location.pathname.startsWith(r))) return;
+
+        // SKIP FOR SUPER ADMIN
+        try {
+            const token = getToken();
+            if (token) {
+                const decoded: any = jwtDecode(token);
+                if (decoded?.user?.role_id === 99) return;
+            }
+        } catch (e) { console.error(e); }
+
+        const checkSetup = async () => {
+            try {
+                // Verificar setup solo si hay token (asumimos que api interceptor lo maneja o que estamos logueados)
+                // Si falla 401, no pasa nada
+                const { data } = await api.get('/tenants/setup-status');
+                if (data && data.isConfigured === false) {
+                    Swal.fire({
+                        title: 'Configuración Incompleta',
+                        text: 'Debes completar la información de tu empresa antes de continuar.',
+                        icon: 'info',
+                        confirmButtonText: 'Completar ahora',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false
+                    }).then(() => {
+                        navigate('/settings');
+                    });
+                }
+            } catch (error) {
+                // Silencioso en error (ej. network error o 401)
+                // console.warn("Setup check failed", error);
+            }
+        };
+        checkSetup();
+    }, [location.pathname, navigate]);
+
     return (
         <React.Fragment>
-            <Joyride
-                steps={tourSteps}
-                run={runTour}
-                continuous={true}
-                showProgress={true}
-                showSkipButton={true}
-                callback={handleJoyrideCallback}
-                locale={{
-                    back: 'Atrás',
-                    close: 'Cerrar',
-                    last: 'Finalizar',
-                    next: 'Siguiente',
-                    skip: 'Saltar',
-                }}
-                styles={joyrideStyles}
-            />
-
             <div id="layout-wrapper">
                 <Header
                     headerClass={headerClass}
                     layoutModeType={layoutModeType}
                     onChangeLayoutMode={onChangeLayoutMode} />
-                
-                {/* --- Pasamos la función startTour al Sidebar --- */}
-                <Sidebar layoutType={layoutType} startTour={startTour} />
-                
-                <div className="main-content">{props.children}
+                <Sidebar
+                    layoutType={layoutType}
+                />
+                <div className="main-content">
+                    {props.children}
                     <Footer />
                 </div>
             </div>
+            <RightSidebar />
         </React.Fragment>
+
     );
 };
 

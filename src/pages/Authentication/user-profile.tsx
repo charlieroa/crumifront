@@ -28,17 +28,17 @@ import { editProfile, resetProfileFlag } from "../../slices/thunks";
 import { createSelector } from "reselect";
 
 const UserProfile = () => {
-  const dispatch : any = useDispatch();
+  const dispatch: any = useDispatch();
 
   const [email, setemail] = useState("admin@gmail.com");
   const [idx, setidx] = useState("1");
 
   const [userName, setUserName] = useState("Admin");
 
-  const selectLayoutState = (state : any) => state.Profile;
+  const selectLayoutState = (state: any) => state.Profile;
   const userprofileData = createSelector(
     selectLayoutState,
-    (state : any) => ({
+    (state: any) => ({
       user: state.user,
       success: state.success,
       error: state.error
@@ -46,7 +46,7 @@ const UserProfile = () => {
   );
   // Inside your component
   const {
-    user, success, error 
+    user, success, error
   } = useSelector(userprofileData);
 
 
@@ -92,7 +92,7 @@ const UserProfile = () => {
 
 
 
-  const validation : any = useFormik({
+  const validation: any = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
 
@@ -108,7 +108,7 @@ const UserProfile = () => {
     }
   });
 
-  document.title = "Profile | Velzon - React Admin & Dashboard Template";
+  document.title = "Perfil | Crumi";
   return (
     <React.Fragment>
       <div className="page-content">

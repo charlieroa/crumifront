@@ -1,23 +1,22 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import withRouter from '../../Components/Common/withRouter';
 import PropTypes from "prop-types";
 import { Collapse, Container } from 'reactstrap';
-import logoSm from "../../assets/images/logo-sm.png";
+import withRouter from '../../Components/Common/withRouter';
 
+import logoSm from "../../assets/images/logo-sm.png";
 //i18n
 import { withTranslation } from "react-i18next";
 
 // Import Data
 import navdata from "../LayoutMenuData";
+import VerticalLayout from "../VerticalLayouts";
 
 //SimpleBar
 import SimpleBar from "simplebar-react";
-import VerticalLayout from '../VerticalLayouts';
 
 const TwoColumnLayout = (props : any) => {
     const navData = navdata().props.children;
-
     const activateParentDropdown = useCallback((item : any) => {
         item.classList.add("active");
         let parentCollapseDiv = item.closest(".collapse.menu-dropdown");
@@ -42,10 +41,12 @@ const TwoColumnLayout = (props : any) => {
         return false;
     }, []);
 
+    const path = props.router.location.pathname;
+
     const initMenu = useCallback(() => {
-        const pathName = process.env.PUBLIC_URL + props.router.location.pathname;
-        const ul : any = document.getElementById("navbar-nav");
-        const items = ul.getElementsByTagName("a");
+        const pathName = process.env.PUBLIC_URL + path;
+        const ul = document.getElementById("navbar-nav") as HTMLElement;
+        const items : any = ul.getElementsByTagName("a");
         let itemsArray = [...items]; // converts NodeList to Array
         removeActivation(itemsArray);
         let matchingMenuItem = itemsArray.find((x) => {
@@ -63,14 +64,14 @@ const TwoColumnLayout = (props : any) => {
             if (id) document.body.classList.add('twocolumn-panel');
             activateIconSidebarActive(id);
         }
-    }, [props.router.location.pathname, activateParentDropdown]);
+    }, [path, activateParentDropdown]);
 
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         initMenu();
-    }, [props.router.location.pathname, initMenu]);
+    }, [path, initMenu]);
 
-    function activateIconSidebarActive(id : any) {
+    function activateIconSidebarActive(id  :any) {
         var menu = document.querySelector("#two-column-menu .simplebar-content-wrapper a[sub-items='" + id + "'].nav-icon");
         if (menu !== null) {
             menu.classList.add("active");
@@ -96,10 +97,10 @@ const TwoColumnLayout = (props : any) => {
         });
 
         const ul = document.getElementById("two-column-menu") as HTMLElement;
-        const iconItems : any= ul.getElementsByTagName("a");
+        const iconItems : any = ul.getElementsByTagName("a");
         let itemsArray = [...iconItems];
         let activeIconItems = itemsArray.filter((x) => x.classList.contains("active"));
-        activeIconItems.forEach((item : any) => {
+        activeIconItems.forEach((item) => {
             item.classList.remove("active");
             var id = item.getAttribute("sub-items");
             var getId = document.getElementById(id) as HTMLElement;
@@ -133,7 +134,6 @@ const TwoColumnLayout = (props : any) => {
             };
         }
     });
-
     return (
         <React.Fragment>
             {isMenu === "twocolumn" ?
@@ -144,7 +144,7 @@ const TwoColumnLayout = (props : any) => {
                                 <Link to="#" className="logo">
                                     <img src={logoSm} alt="" height="22" />
                                 </Link>
-                                {(navData || []).map((item : any, key : any) => (
+                                {(navData || []).map((item : any, key : number) => (
                                     <React.Fragment key={key}>
                                         {item.icon && (
                                             item.subItems ? (
@@ -178,7 +178,7 @@ const TwoColumnLayout = (props : any) => {
                             </SimpleBar>
                         </div>
                         <SimpleBar id="navbar-nav" className="navbar-nav">
-                            {(navData || []).map((item : any, key : any) => (
+                            {(navData || []).map((item : any, key : number) => (
                                 <React.Fragment key={key}>
                                     {item.subItems ? (
                                         <li className="nav-item">
@@ -188,7 +188,7 @@ const TwoColumnLayout = (props : any) => {
                                                 id={item.id}>
                                                 <ul className="nav nav-sm flex-column test">
                                                     {/* subItms  */}
-                                                    {item.subItems && ((item.subItems || []).map((subItem : any, key : any) => (
+                                                    {item.subItems && ((item.subItems || []).map((subItem : any, key : number) => (
                                                         <React.Fragment key={key}>
                                                             {!subItem.isChildItem ? (
                                                                 <li className="nav-item">
@@ -210,24 +210,28 @@ const TwoColumnLayout = (props : any) => {
                                                                         to="/#"
                                                                         data-bs-toggle="collapse"
                                                                     > {props.t(subItem.label)}
+                                                                        {subItem.badgeName ?
+                                                                            <span className={"badge badge-pill bg-" + subItem.badgeColor} data-key="t-new">{subItem.badgeName}</span>
+                                                                            : null}
                                                                     </Link>
                                                                     <Collapse className="menu-dropdown" isOpen={subItem.stateVariables} id={item.id}>
                                                                         <ul className="nav nav-sm flex-column">
                                                                             {/* child subItms  */}
                                                                             {subItem.childItems && (
-                                                                                (subItem.childItems || []).map((childItem : any, key : any) => (
+                                                                                (subItem.childItems || []).map((childItem : any, key : number) => (
                                                                                     <li className="nav-item" key={key}>
                                                                                         <Link
                                                                                             to={childItem.link ? childItem.link : "/#"}
                                                                                             onClick={childItem.click}
                                                                                             className="nav-link" >
                                                                                             {props.t(childItem.label)}
+
                                                                                         </Link>
                                                                                         <Collapse className="menu-dropdown" isOpen={childItem.stateVariables} id={item.id}>
                                                                                             <ul className="nav nav-sm flex-column">
                                                                                                 {/* child subChildItems  */}
                                                                                                 {childItem.isChildItem && (
-                                                                                                    (childItem.childItems || []).map((childItem : any, key : any) => (
+                                                                                                    (childItem.childItems || []).map((childItem : any, key : number) => (
                                                                                                         <li className="nav-item" key={key} >
                                                                                                             <Link
                                                                                                                 to={childItem.link ? childItem.link : "/#"}
@@ -270,7 +274,7 @@ const TwoColumnLayout = (props : any) => {
                     </Container>
                 </SimpleBar>
             }
-        </React.Fragment>
+        </React.Fragment >
     );
 };
 
@@ -278,6 +282,5 @@ TwoColumnLayout.propTypes = {
     location: PropTypes.object,
     t: PropTypes.any,
 };
-
 
 export default withRouter(withTranslation()(TwoColumnLayout));

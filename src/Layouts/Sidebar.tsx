@@ -1,65 +1,60 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import SimpleBar from "simplebar-react";
-
-// Import logos
+//import logo
 import logoSm from "../assets/images/logo-sm.png";
 import logoDark from "../assets/images/logo-dark.png";
 import logoLight from "../assets/images/logo-light.png";
 
-// Import Components
+//Import Components
 import VerticalLayout from "./VerticalLayouts";
 import TwoColumnLayout from "./TwoColumnLayout";
 import { Container } from "reactstrap";
 import HorizontalLayout from "./HorizontalLayout";
 
-// --- Sidebar principal ---
-const Sidebar = ({ layoutType, startTour }: any) => {
+const Sidebar = ({ layoutType } : any) => {
+
   useEffect(() => {
-    const verticalOverlay = document.getElementsByClassName("vertical-overlay");
-    if (verticalOverlay && verticalOverlay[0]) {
+    var verticalOverlay = document.getElementsByClassName("vertical-overlay");
+    if (verticalOverlay) {
       verticalOverlay[0].addEventListener("click", function () {
         document.body.classList.remove("vertical-sidebar-enable");
       });
     }
-  }, []);
+  });
 
   const addEventListenerOnSmHoverMenu = () => {
-    if (document.documentElement.getAttribute("data-sidebar-size") === "sm-hover") {
-      document.documentElement.setAttribute("data-sidebar-size", "sm-hover-active");
-    } else if (
-      document.documentElement.getAttribute("data-sidebar-size") === "sm-hover-active"
-    ) {
-      document.documentElement.setAttribute("data-sidebar-size", "sm-hover");
+    // add listener Sidebar Hover icon on change layout from setting
+    if (document.documentElement.getAttribute('data-sidebar-size') === 'sm-hover') {
+      document.documentElement.setAttribute('data-sidebar-size', 'sm-hover-active');
+    } else if (document.documentElement.getAttribute('data-sidebar-size') === 'sm-hover-active') {
+      document.documentElement.setAttribute('data-sidebar-size', 'sm-hover');
     } else {
-      document.documentElement.setAttribute("data-sidebar-size", "sm-hover");
+      document.documentElement.setAttribute('data-sidebar-size', 'sm-hover');
     }
   };
 
   return (
     <React.Fragment>
       <div className="app-menu navbar-menu">
-        {/* LOGOS */}
         <div className="navbar-brand-box">
           <Link to="/" className="logo logo-dark">
             <span className="logo-sm">
-              <img src={logoSm} alt="logo" height="22" />
+              <img src={logoSm} alt="" height="22" />
             </span>
             <span className="logo-lg">
-              <img src={logoDark} alt="logo" height="70" />
+              <img src={logoDark} alt="" height="17" />
             </span>
           </Link>
 
           <Link to="/" className="logo logo-light">
             <span className="logo-sm">
-              <img src={logoSm} alt="logo" height="22" />
+             <p>CRUMI</p>
             </span>
             <span className="logo-lg">
-              <img src={logoLight} alt="logo" height="70" />
+              <p>CRUMI</p>
             </span>
           </Link>
-
-          {/* Botón hover */}
           <button
             onClick={addEventListenerOnSmHoverMenu}
             type="button"
@@ -69,8 +64,6 @@ const Sidebar = ({ layoutType, startTour }: any) => {
             <i className="ri-record-circle-line"></i>
           </button>
         </div>
-
-        {/* --- Diferentes layouts según el tipo --- */}
         {layoutType === "horizontal" ? (
           <div id="scrollbar">
             <Container fluid>
@@ -80,7 +73,7 @@ const Sidebar = ({ layoutType, startTour }: any) => {
               </ul>
             </Container>
           </div>
-        ) : layoutType === "twocolumn" ? (
+        ) : layoutType === 'twocolumn' ? (
           <React.Fragment>
             <TwoColumnLayout layoutType={layoutType} />
             <div className="sidebar-background"></div>
@@ -91,8 +84,7 @@ const Sidebar = ({ layoutType, startTour }: any) => {
               <Container fluid>
                 <div id="two-column-menu"></div>
                 <ul className="navbar-nav" id="navbar-nav">
-                  {/* Pasamos startTour a VerticalLayout */}
-                  <VerticalLayout layoutType={layoutType} startTour={startTour} />
+                  <VerticalLayout layoutType={layoutType} />
                 </ul>
               </Container>
             </SimpleBar>

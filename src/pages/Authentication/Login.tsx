@@ -41,7 +41,6 @@ const Login = (props: any) => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [loader, setLoader] = useState<boolean>(false);
 
-  // Relleno opcional desde store (si vienes de un flujo que dejó datos en Account.user)
   useEffect(() => {
     if (user) {
       const updatedUserData =
@@ -61,9 +60,8 @@ const Login = (props: any) => {
   const validation: any = useFormik({
     enableReinitialize: true,
     initialValues: {
-      // Puedes dejar tus defaults si te sirven para probar
       email: userLogin.email,
-      password: userLogin.password ,
+      password: userLogin.password,
     },
     validationSchema: Yup.object({
       email: Yup.string().required("Please Enter Your Email"),
@@ -71,7 +69,6 @@ const Login = (props: any) => {
     }),
     onSubmit: (values) => {
       setLoader(true);
-      // Mantienes tu flujo con Redux Thunk + navigate
       dispatch(loginUser(values, props.router.navigate));
     },
   });
@@ -80,7 +77,6 @@ const Login = (props: any) => {
     dispatch(socialLogin(type, props.router.navigate));
   };
 
-  // Limpia error del slice y apaga loader cuando llega errorMsg
   useEffect(() => {
     if (errorMsg) {
       const t = setTimeout(() => {
@@ -91,12 +87,11 @@ const Login = (props: any) => {
     }
   }, [dispatch, errorMsg]);
 
-  // Si usas error además de errorMsg, también apaga loader
   useEffect(() => {
     if (error) setLoader(false);
   }, [error]);
 
-  document.title = "Basic SignIn | Velzon - React Admin & Dashboard Template";
+  document.title = "Iniciar Sesión | Crumi";
 
   return (
     <React.Fragment>
@@ -108,10 +103,9 @@ const Login = (props: any) => {
                 <div className="text-center mt-sm-5 mb-4 text-white-50">
                   <div>
                     <Link to="/" className="d-inline-block auth-logo">
-                      <img src={logoLight} alt="" height="120" />
+                      {/* <img src={logoLight} alt="" height="120" /> */}
                     </Link>
                   </div>
-                  <p className="mt-3 fs-15 fw-medium">Ahora la IA en tu pelukeria</p>
                 </div>
               </Col>
             </Row>
@@ -125,7 +119,6 @@ const Login = (props: any) => {
                       <p className="text-muted">Ingresa a tu cuenta.</p>
                     </div>
 
-                    {/* Mostrar error del slice sin Fade para evitar el warning */}
                     {error && <Alert color="danger" fade={false}>{error}</Alert>}
                     {errorMsg && <Alert color="danger" fade={false}>{errorMsg}</Alert>}
 
@@ -186,7 +179,7 @@ const Login = (props: any) => {
                         </div>
 
                         <div className="form-check">
-                          <Input className="form-check-input" type="checkbox" value="" id="auth-remember-check" />
+                          <Input className="form-check-input" type="checkbox" id="auth-remember-check" />
                           <Label className="form-check-label" htmlFor="auth-remember-check">Remember me</Label>
                         </div>
 
@@ -207,28 +200,16 @@ const Login = (props: any) => {
                             <h5 className="fs-13 mb-4 title">Sign In with</h5>
                           </div>
                           <div>
-                            <Link
-                              to="#"
-                              className="btn btn-primary btn-icon me-1"
-                              onClick={e => {
-                                e.preventDefault();
-                                signIn("facebook");
+                            <Button
+                              color="danger"
+                              className="w-100"
+                              type="button"
+                              onClick={() => {
+                                window.location.href = "http://localhost:5000/api/auth/google";
                               }}
                             >
-                              <i className="ri-facebook-fill fs-16" />
-                            </Link>
-                            <Link
-                              to="#"
-                              className="btn btn-danger btn-icon me-1"
-                              onClick={e => {
-                                e.preventDefault();
-                                signIn("google");
-                              }}
-                            >
-                              <i className="ri-google-fill fs-16" />
-                            </Link>
-                            <Button color="dark" className="btn-icon" type="button"><i className="ri-github-fill fs-16"></i></Button>{" "}
-                            <Button color="info" className="btn-icon" type="button"><i className="ri-twitter-fill fs-16"></i></Button>
+                              <i className="ri-google-fill fs-16 me-2"></i> Continuar con Google
+                            </Button>
                           </div>
                         </div>
                       </Form>
