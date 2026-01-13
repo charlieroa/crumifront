@@ -157,7 +157,8 @@ const Layout = (props: any) => {
             const token = getToken();
             if (token) {
                 const decoded: any = jwtDecode(token);
-                if (decoded?.user?.role_id === 99) return;
+                // Exempt Super Admin (99) and Stylists (3) or other employees that don't need to configure company
+                if (decoded?.user?.role_id === 99 || decoded?.user?.role_id === 3) return;
             }
         } catch (e) { console.error(e); }
 

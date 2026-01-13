@@ -35,7 +35,7 @@ const LayoutMenuData = () => {
       label: "Asistente IA",
       icon: "ri-sparkling-line",
       link: "/onboarding",
-      roles: [1, 2, 3]
+      roles: [1, 2]
     },
 
     // --- SECCIÓN PRINCIPAL ---
@@ -59,7 +59,7 @@ const LayoutMenuData = () => {
       label: "Documentos",
       icon: "ri-folder-3-line",
       link: "/ingresos/documentos",
-      roles: [1, 3]
+      roles: [1]
     },
 
 
@@ -76,7 +76,7 @@ const LayoutMenuData = () => {
       label: "Kanban Board",
       icon: "ri-task-line",
       link: "/apps/tasks-dashboard",
-      roles: [1, 99]
+      roles: [1, 3, 99]
     },
 
     // Personal

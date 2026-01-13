@@ -93,7 +93,11 @@ const StaffModal: React.FC<{
       };
 
       if (edit) {
-        await api.put(`/users/${edit.id}`, baseBody);
+        const updateBody: any = { ...baseBody };
+        if (password.trim()) {
+          updateBody.password = password.trim();
+        }
+        await api.put(`/users/${edit.id}`, updateBody);
       } else {
         if (!password.trim()) {
           Swal.fire({ icon: 'warning', title: 'Campo requerido', text: 'La contraseña es obligatoria.' });
@@ -150,17 +154,20 @@ const StaffModal: React.FC<{
             <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="3001234567" />
           </Col>
 
-          {!edit && (
-            <Col md={12}>
-              <Label className="form-label">Contraseña</Label>
-              <div className="input-group">
-                <Input type={showPass ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
-                <Button type="button" color="light" onClick={() => setShowPass(v => !v)} title={showPass ? "Ocultar" : "Mostrar"}>
-                  <i className={showPass ? "ri-eye-off-line" : "ri-eye-line"} />
-                </Button>
-              </div>
-            </Col>
-          )}
+          <Col md={12}>
+            <Label className="form-label">{edit ? "Nueva Contraseña (opcional)" : "Contraseña"}</Label>
+            <div className="input-group">
+              <Input
+                type={showPass ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={edit ? "Dejar en blanco para mantener" : "••••••••"}
+              />
+              <Button type="button" color="light" onClick={() => setShowPass(v => !v)} title={showPass ? "Ocultar" : "Mostrar"}>
+                <i className={showPass ? "ri-eye-off-line" : "ri-eye-line"} />
+              </Button>
+            </div>
+          </Col>
         </Row>
       </ModalBody>
       <ModalFooter>

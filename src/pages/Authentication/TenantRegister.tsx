@@ -100,7 +100,7 @@ const TenantRegister = () => {
                                             <div className="text-center mt-2 text-muted small">O usa tu email</div>
                                         </div>
                                         {success && (<Alert color="success" fade={false}>¡Registro exitoso! Serás redirigido para que inicies sesión.</Alert>)}
-                                        {error && (<Alert color="danger" fade={false}>{error}</Alert>)}
+                                        {error && (<Alert color="danger" fade={false}>{typeof error === 'string' ? error : (error.error || error.message || "Error en el registro")}</Alert>)}
 
                                         <div className="p-2 mt-4">
                                             <Form onSubmit={(e) => { e.preventDefault(); validation.handleSubmit(); }}>

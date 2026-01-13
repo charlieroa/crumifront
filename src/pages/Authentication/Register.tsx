@@ -71,7 +71,7 @@ const Register = () => {
                                             <p className="text-muted">Crea tu cuenta para empezar.</p>
                                         </div>
                                         {success && (<Alert color="success">¡Registro exitoso! Serás redirigido al login...</Alert>)}
-                                        {error && (<Alert color="danger">{error.message || "Ha ocurrido un error."}</Alert>)}
+                                        {error && (<Alert color="danger">{typeof error === 'string' ? error : (error.error || error.message || "Ha ocurrido un error.")}</Alert>)}
                                         <div className="p-2 mt-4">
                                             <Form onSubmit={(e) => { e.preventDefault(); validation.handleSubmit(); }}>
 

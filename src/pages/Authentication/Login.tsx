@@ -4,6 +4,8 @@ import {
   Card, CardBody, Col, Container, Input, Label, Row,
   Button, Form, FormFeedback, Alert, Spinner
 } from 'reactstrap';
+import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
 import ParticlesAuth from "../AuthenticationInner/ParticlesAuth";
 
 // redux
@@ -88,8 +90,24 @@ const Login = (props: any) => {
   }, [dispatch, errorMsg]);
 
   useEffect(() => {
-    if (error) setLoader(false);
-  }, [error]);
+    if (error || errorMsg) {
+      setLoader(false);
+      // Ensure we don't display 'true' if errorMsg is a boolean
+      let msg = typeof error === 'string' ? error : (error?.error || error?.message || "Error al iniciar sesión");
+
+      // If msg is still generic and errorMsg is a string, use it.
+      if (typeof errorMsg === 'string') {
+        msg = errorMsg;
+      }
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de Inicio de Sesión',
+        text: msg,
+        confirmButtonColor: '#f46a6a'
+      });
+    }
+  }, [error, errorMsg]);
 
   document.title = "Iniciar Sesión | Crumi";
 
@@ -119,8 +137,7 @@ const Login = (props: any) => {
                       <p className="text-muted">Ingresa a tu cuenta.</p>
                     </div>
 
-                    {error && <Alert color="danger" fade={false}>{error}</Alert>}
-                    {errorMsg && <Alert color="danger" fade={false}>{errorMsg}</Alert>}
+                    {error && <Alert color="danger" fade={false}>{typeof error === 'string' ? error : (error.error || error.message || "Error al iniciar sesión")}</Alert>}
 
                     <div className="p-2 mt-4">
                       <Form

@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-export const initialState : any = {
+export const initialState: any = {
   user: {},
   error: "", // for error message
   loading: false,
@@ -12,8 +12,8 @@ const loginSlice = createSlice({
   name: "login",
   initialState,
   reducers: {
-    apiError(state : any, action : any) {
-      state.error = action.payload.data;
+    apiError(state: any, action: any) {
+      state.error = action.payload;
       state.loading = true;
       state.isUserLogout = false;
       state.errorMsg = true;
@@ -26,7 +26,7 @@ const loginSlice = createSlice({
     logoutUserSuccess(state, action) {
       state.isUserLogout = true
     },
-    reset_login_flag(state : any) {
+    reset_login_flag(state: any) {
       state.error = null
       state.loading = false;
       state.errorMsg = false;
