@@ -31,7 +31,7 @@ export const CREATE_APPOINTMENTS_BATCH = "/appointments/batch";
 export const POST_FAKE_REGISTER = "/auth/signup";
 
 //LOGIN
-export const POST_FAKE_LOGIN = "/auth/signin";
+export const POST_FAKE_LOGIN = "/auth/login";
 // export const POST_FAKE_JWT_LOGIN = "/post-jwt-login"; // <-- ESTA LÍNEA SE REEMPLAZA POR LA NUESTRA ARRIBA
 export const POST_FAKE_PASSWORD_FORGET = "/auth/forgot-password";
 export const POST_FAKE_JWT_PASSWORD_FORGET = "/jwt-forget-pwd";
