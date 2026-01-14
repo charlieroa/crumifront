@@ -42,6 +42,8 @@ import Logout from "../pages/Authentication/Logout";
 import Register from "../pages/Authentication/Register"; // Registro de Clientes
 import UserProfile from "../pages/Authentication/user-profile";
 import TenantRegister from "../pages/Authentication/TenantRegister"; // Registro de Dueños
+import ForgotPassword from "../pages/Authentication/ForgotPassword"; // Recuperar contraseña
+import ResetPassword from "../pages/Authentication/ResetPassword"; // Restablecer contraseña
 import Settings from '../pages/Pages/Profile/Settings/Settings';
 import AuthGoogleCallback from '../pages/Authentication/AuthGoogleCallback';
 import EmployeeKanban from '../pages/Tasks/EmployeeKanban'; // Kanban route
@@ -105,6 +107,8 @@ const publicRoutes = [
   { path: "/login", component: <Login /> },
   { path: "/register", component: <Register /> }, // Registro de Clientes
   { path: "/register-tenant", component: <TenantRegister /> }, // Registro de Dueños
+  { path: "/forgot-password", component: <ForgotPassword /> }, // Recuperar contraseña
+  { path: "/reset-password", component: <ResetPassword /> }, // Restablecer contraseña
   { path: "/auth-google-callback", component: <AuthGoogleCallback /> },
 ];
 

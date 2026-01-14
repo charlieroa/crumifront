@@ -1,5 +1,5 @@
 // src/pages/Landing/index.tsx
-// Landing page estilo ContAI - Contabilidad con IA
+// Landing page estilo Crumi - Sistema de Contabilidad
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -67,7 +67,7 @@ export default function LandingPage() {
 
 
   useEffect(() => {
-    document.title = "Crumi - Contabilidad con IA";
+    document.title = "Crumi - Tu asistente de contabilidad";
 
     let ctx: any;
     let stepObserver: IntersectionObserver | null = null;
@@ -238,7 +238,7 @@ export default function LandingPage() {
             <div>
               <div className="crumi-badge">
                 <span className="crumi-badge-dot" />
-                IA para contabilidad en tiempo real
+                Crumi para contabilidad en tiempo real
               </div>
 
               <h1 className="crumi-hero-title">
@@ -454,7 +454,7 @@ export default function LandingPage() {
         {/* FOOTER */}
         <footer className="crumi-footer">
           <div className="crumi-footer-inner">
-            <div>© {year} Crumi. Contabilidad con IA.</div>
+            <div>© {year} Crumi. Tu asistente de contabilidad.</div>
             <div className="crumi-footer-links">
               <Link to="/login">Ingresar</Link>
               <Link to="/register-tenant">Crear cuenta</Link>
