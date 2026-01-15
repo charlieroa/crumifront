@@ -186,7 +186,7 @@ const Login = (props: any) => {
                 type="button"
                 className="crumi-btn-google"
                 onClick={() => {
-                  window.location.href = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/google`;
+                  window.location.href = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/auth/google`;
                 }}
               >
                 <svg width="18" height="18" viewBox="0 0 18 18">

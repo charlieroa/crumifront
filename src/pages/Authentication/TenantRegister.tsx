@@ -13,234 +13,234 @@ import { registerTenant } from '../../slices/auth/tenantRegister/thunk';
 import { resetTenantRegisterFlag } from '../../slices/auth/tenantRegister/reducer';
 
 const TenantRegister = (props: any) => {
-    const dispatch: any = useDispatch();
-    const navigate = useNavigate();
+  const dispatch: any = useDispatch();
+  const navigate = useNavigate();
 
-    const selectRegisterState = (state: any) => state.tenantRegister;
-    const registerData = createSelector(
-        selectRegisterState,
-        (state) => ({
-            success: state.registrationSuccess,
-            error: state.registrationError,
-        })
-    );
+  const selectRegisterState = (state: any) => state.tenantRegister;
+  const registerData = createSelector(
+    selectRegisterState,
+    (state) => ({
+      success: state.registrationSuccess,
+      error: state.registrationError,
+    })
+  );
 
-    const { success, error } = useSelector(registerData);
+  const { success, error } = useSelector(registerData);
 
-    const [showPassword, setShowPassword] = useState<boolean>(false);
-    const [loader, setLoader] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [loader, setLoader] = useState<boolean>(false);
 
-    const validation: any = useFormik({
-        enableReinitialize: true,
-        initialValues: {
-            tenantName: '',
-            adminEmail: '',
-            adminPassword: '',
-        },
-        validationSchema: Yup.object({
-            tenantName: Yup.string().required("Por favor ingresa el nombre de tu empresa"),
-            adminEmail: Yup.string().required("Por favor ingresa tu email").email("Email inválido"),
-            adminPassword: Yup.string().required("Por favor ingresa una contraseña").min(6, "La contraseña debe tener al menos 6 caracteres"),
-        }),
-        onSubmit: (values) => {
-            setLoader(true);
-            const dataToSend = {
-                ...values,
-                adminFirstName: values.adminEmail.split('@')[0],
-            };
-            dispatch(registerTenant(dataToSend));
-        },
-    });
+  const validation: any = useFormik({
+    enableReinitialize: true,
+    initialValues: {
+      tenantName: '',
+      adminEmail: '',
+      adminPassword: '',
+    },
+    validationSchema: Yup.object({
+      tenantName: Yup.string().required("Por favor ingresa el nombre de tu empresa"),
+      adminEmail: Yup.string().required("Por favor ingresa tu email").email("Email inválido"),
+      adminPassword: Yup.string().required("Por favor ingresa una contraseña").min(6, "La contraseña debe tener al menos 6 caracteres"),
+    }),
+    onSubmit: (values) => {
+      setLoader(true);
+      const dataToSend = {
+        ...values,
+        adminFirstName: values.adminEmail.split('@')[0],
+      };
+      dispatch(registerTenant(dataToSend));
+    },
+  });
 
-    useEffect(() => {
-        if (success) {
-            setLoader(false);
-            Swal.fire({
-                icon: 'success',
-                title: '¡Registro Exitoso!',
-                text: 'Tu cuenta ha sido creada. Serás redirigido al login...',
-                confirmButtonColor: '#667eea',
-                timer: 3000,
-                timerProgressBar: true,
-            }).then(() => {
-                navigate('/login');
-            });
-        }
-    }, [success, navigate]);
+  useEffect(() => {
+    if (success) {
+      setLoader(false);
+      Swal.fire({
+        icon: 'success',
+        title: '¡Registro Exitoso!',
+        text: 'Tu cuenta ha sido creada. Serás redirigido al login...',
+        confirmButtonColor: '#667eea',
+        timer: 3000,
+        timerProgressBar: true,
+      }).then(() => {
+        navigate('/login');
+      });
+    }
+  }, [success, navigate]);
 
-    useEffect(() => {
-        if (error) {
-            setLoader(false);
-            let msg = typeof error === 'string' ? error : (error?.error || error?.message || "Error al registrar la cuenta");
+  useEffect(() => {
+    if (error) {
+      setLoader(false);
+      let msg = typeof error === 'string' ? error : (error?.error || error?.message || "Error al registrar la cuenta");
 
-            Swal.fire({
-                icon: 'error',
-                title: 'Error de Registro',
-                text: msg,
-                confirmButtonColor: '#667eea'
-            });
-            dispatch(resetTenantRegisterFlag());
-        }
-    }, [error, dispatch]);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de Registro',
+        text: msg,
+        confirmButtonColor: '#667eea'
+      });
+      dispatch(resetTenantRegisterFlag());
+    }
+  }, [error, dispatch]);
 
-    document.title = "Crear Cuenta de Empresa | Crumi";
+  document.title = "Crear Cuenta de Empresa | Crumi";
 
-    return (
-        <div className="crumi-auth-page">
-            <style>{authCSS}</style>
+  return (
+    <div className="crumi-auth-page">
+      <style>{authCSS}</style>
 
-            <div className="crumi-auth-container">
-                {/* Left Side - Form */}
-                <div className="crumi-auth-form-side">
-                    <div className="crumi-auth-form-content">
-                        {/* Logo */}
-                        <Link to="/" className="crumi-auth-logo">
-                            <div className="crumi-auth-logo-icon">
-                                <span>✦</span>
-                            </div>
-                            <span>Crumi</span>
-                        </Link>
+      <div className="crumi-auth-container">
+        {/* Left Side - Form */}
+        <div className="crumi-auth-form-side">
+          <div className="crumi-auth-form-content">
+            {/* Logo */}
+            <Link to="/" className="crumi-auth-logo">
+              <div className="crumi-auth-logo-icon">
+                <span>✦</span>
+              </div>
+              <span>Crumi</span>
+            </Link>
 
-                        {/* Header */}
-                        <div className="crumi-auth-header">
-                            <h1>Crea tu cuenta</h1>
-                            <p>Empieza a gestionar tu empresa hoy mismo</p>
-                        </div>
-
-                        {/* Form */}
-                        <form onSubmit={(e) => { e.preventDefault(); validation.handleSubmit(); }}>
-                            <div className="crumi-form-group">
-                                <label htmlFor="tenantName">Nombre de tu empresa</label>
-                                <input
-                                    id="tenantName"
-                                    name="tenantName"
-                                    type="text"
-                                    placeholder="Ej: Mi Empresa S.A.S"
-                                    className={validation.touched.tenantName && validation.errors.tenantName ? 'error' : ''}
-                                    onChange={validation.handleChange}
-                                    onBlur={validation.handleBlur}
-                                    value={validation.values.tenantName || ""}
-                                />
-                                {validation.touched.tenantName && validation.errors.tenantName && (
-                                    <span className="crumi-form-error">{validation.errors.tenantName}</span>
-                                )}
-                            </div>
-
-                            <div className="crumi-form-group">
-                                <label htmlFor="adminEmail">Correo electrónico</label>
-                                <input
-                                    id="adminEmail"
-                                    name="adminEmail"
-                                    type="email"
-                                    placeholder="tu@email.com"
-                                    className={validation.touched.adminEmail && validation.errors.adminEmail ? 'error' : ''}
-                                    onChange={validation.handleChange}
-                                    onBlur={validation.handleBlur}
-                                    value={validation.values.adminEmail || ""}
-                                />
-                                {validation.touched.adminEmail && validation.errors.adminEmail && (
-                                    <span className="crumi-form-error">{validation.errors.adminEmail}</span>
-                                )}
-                            </div>
-
-                            <div className="crumi-form-group">
-                                <label htmlFor="adminPassword">Contraseña</label>
-                                <div className="crumi-password-input">
-                                    <input
-                                        id="adminPassword"
-                                        name="adminPassword"
-                                        type={showPassword ? "text" : "password"}
-                                        placeholder="••••••••"
-                                        className={validation.touched.adminPassword && validation.errors.adminPassword ? 'error' : ''}
-                                        onChange={validation.handleChange}
-                                        onBlur={validation.handleBlur}
-                                        value={validation.values.adminPassword || ""}
-                                    />
-                                    <button
-                                        type="button"
-                                        className="crumi-password-toggle"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                    >
-                                        {showPassword ? '👁️' : '👁️‍🗨️'}
-                                    </button>
-                                </div>
-                                {validation.touched.adminPassword && validation.errors.adminPassword && (
-                                    <span className="crumi-form-error">{validation.errors.adminPassword}</span>
-                                )}
-                            </div>
-
-                            <button type="submit" className="crumi-btn-primary" disabled={loader}>
-                                {loader ? (
-                                    <>
-                                        <span className="crumi-spinner"></span>
-                                        Creando cuenta...
-                                    </>
-                                ) : (
-                                    'Crear mi cuenta'
-                                )}
-                            </button>
-
-                            <div className="crumi-divider">
-                                <span>o continúa con</span>
-                            </div>
-
-                            <button
-                                type="button"
-                                className="crumi-btn-google"
-                                onClick={() => {
-                                    window.location.href = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/google`;
-                                }}
-                            >
-                                <svg width="18" height="18" viewBox="0 0 18 18">
-                                    <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" />
-                                    <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" />
-                                    <path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z" />
-                                    <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" />
-                                </svg>
-                                Registrarse con Google
-                            </button>
-
-                            <div className="crumi-auth-footer">
-                                <p>¿Ya tienes una cuenta? <Link to="/login">Inicia sesión</Link></p>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                {/* Right Side - Visual */}
-                <div className="crumi-auth-visual-side">
-                    <div className="crumi-auth-bg">
-                        <div className="crumi-auth-orb crumi-auth-orb-1"></div>
-                        <div className="crumi-auth-orb crumi-auth-orb-2"></div>
-                        <div className="crumi-auth-orb crumi-auth-orb-3"></div>
-                    </div>
-
-                    <div className="crumi-auth-visual-content">
-                        <div className="crumi-auth-feature-card">
-                            <div className="crumi-auth-feature-icon">✨</div>
-                            <h3>Gestión inteligente</h3>
-                            <p>Administra tu empresa de forma fácil e intuitiva desde cualquier lugar</p>
-                        </div>
-
-                        <div className="crumi-auth-stats">
-                            <div className="crumi-auth-stat">
-                                <div className="crumi-auth-stat-value">100%</div>
-                                <div className="crumi-auth-stat-label">Seguro</div>
-                            </div>
-                            <div className="crumi-auth-stat">
-                                <div className="crumi-auth-stat-value">24/7</div>
-                                <div className="crumi-auth-stat-label">Disponible</div>
-                            </div>
-                            <div className="crumi-auth-stat">
-                                <div className="crumi-auth-stat-value">IA</div>
-                                <div className="crumi-auth-stat-label">Inteligente</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            {/* Header */}
+            <div className="crumi-auth-header">
+              <h1>Crea tu cuenta</h1>
+              <p>Empieza a gestionar tu empresa hoy mismo</p>
             </div>
+
+            {/* Form */}
+            <form onSubmit={(e) => { e.preventDefault(); validation.handleSubmit(); }}>
+              <div className="crumi-form-group">
+                <label htmlFor="tenantName">Nombre de tu empresa</label>
+                <input
+                  id="tenantName"
+                  name="tenantName"
+                  type="text"
+                  placeholder="Ej: Mi Empresa S.A.S"
+                  className={validation.touched.tenantName && validation.errors.tenantName ? 'error' : ''}
+                  onChange={validation.handleChange}
+                  onBlur={validation.handleBlur}
+                  value={validation.values.tenantName || ""}
+                />
+                {validation.touched.tenantName && validation.errors.tenantName && (
+                  <span className="crumi-form-error">{validation.errors.tenantName}</span>
+                )}
+              </div>
+
+              <div className="crumi-form-group">
+                <label htmlFor="adminEmail">Correo electrónico</label>
+                <input
+                  id="adminEmail"
+                  name="adminEmail"
+                  type="email"
+                  placeholder="tu@email.com"
+                  className={validation.touched.adminEmail && validation.errors.adminEmail ? 'error' : ''}
+                  onChange={validation.handleChange}
+                  onBlur={validation.handleBlur}
+                  value={validation.values.adminEmail || ""}
+                />
+                {validation.touched.adminEmail && validation.errors.adminEmail && (
+                  <span className="crumi-form-error">{validation.errors.adminEmail}</span>
+                )}
+              </div>
+
+              <div className="crumi-form-group">
+                <label htmlFor="adminPassword">Contraseña</label>
+                <div className="crumi-password-input">
+                  <input
+                    id="adminPassword"
+                    name="adminPassword"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    className={validation.touched.adminPassword && validation.errors.adminPassword ? 'error' : ''}
+                    onChange={validation.handleChange}
+                    onBlur={validation.handleBlur}
+                    value={validation.values.adminPassword || ""}
+                  />
+                  <button
+                    type="button"
+                    className="crumi-password-toggle"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? '👁️' : '👁️‍🗨️'}
+                  </button>
+                </div>
+                {validation.touched.adminPassword && validation.errors.adminPassword && (
+                  <span className="crumi-form-error">{validation.errors.adminPassword}</span>
+                )}
+              </div>
+
+              <button type="submit" className="crumi-btn-primary" disabled={loader}>
+                {loader ? (
+                  <>
+                    <span className="crumi-spinner"></span>
+                    Creando cuenta...
+                  </>
+                ) : (
+                  'Crear mi cuenta'
+                )}
+              </button>
+
+              <div className="crumi-divider">
+                <span>o continúa con</span>
+              </div>
+
+              <button
+                type="button"
+                className="crumi-btn-google"
+                onClick={() => {
+                  window.location.href = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/auth/google`;
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18">
+                  <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" />
+                  <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" />
+                  <path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z" />
+                  <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" />
+                </svg>
+                Registrarse con Google
+              </button>
+
+              <div className="crumi-auth-footer">
+                <p>¿Ya tienes una cuenta? <Link to="/login">Inicia sesión</Link></p>
+              </div>
+            </form>
+          </div>
         </div>
-    );
+
+        {/* Right Side - Visual */}
+        <div className="crumi-auth-visual-side">
+          <div className="crumi-auth-bg">
+            <div className="crumi-auth-orb crumi-auth-orb-1"></div>
+            <div className="crumi-auth-orb crumi-auth-orb-2"></div>
+            <div className="crumi-auth-orb crumi-auth-orb-3"></div>
+          </div>
+
+          <div className="crumi-auth-visual-content">
+            <div className="crumi-auth-feature-card">
+              <div className="crumi-auth-feature-icon">✨</div>
+              <h3>Gestión inteligente</h3>
+              <p>Administra tu empresa de forma fácil e intuitiva desde cualquier lugar</p>
+            </div>
+
+            <div className="crumi-auth-stats">
+              <div className="crumi-auth-stat">
+                <div className="crumi-auth-stat-value">100%</div>
+                <div className="crumi-auth-stat-label">Seguro</div>
+              </div>
+              <div className="crumi-auth-stat">
+                <div className="crumi-auth-stat-value">24/7</div>
+                <div className="crumi-auth-stat-label">Disponible</div>
+              </div>
+              <div className="crumi-auth-stat">
+                <div className="crumi-auth-stat-value">IA</div>
+                <div className="crumi-auth-stat-label">Inteligente</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const authCSS = `
