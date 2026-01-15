@@ -11,18 +11,44 @@ const AuthGoogleCallback = () => {
         const token = params.get('token');
 
         if (token) {
-            // 1. Guardar token
-            const userObj = { token };
-            sessionStorage.setItem('authUser', JSON.stringify(userObj));
-
-            // 2. Setear header axios
+            // 1. Setear header axios temporalmente
             setAuthorization(token);
 
-            // 3. Redirigir al inicio (Layout validará si faltan datos configuración)
-            // Ajuste: damos un pequeño delay para asegurar que se guardó
-            setTimeout(() => {
-                navigate('/');
-            }, 500);
+            // 2. Obtener datos del usuario
+            // Usamos axios directamente o la instancia api si estuviera exportada, 
+            // pero api_helper setAuthorization afecta a axios global.
+            // Asumimos que axios está importado en api_helper, aquí importamos axios si es necesario, 
+            // o mejor, usamos los helpers si existen. 
+            // Como no tenemos 'api.get' directo aquí sin importarlo, usamos fetch o axios.
+            // Vamos a usar axios importandolo.
+
+            // Fetch User Data
+            import("axios").then(axios => {
+                axios.default.get('/auth/me')
+                    .then(response => {
+                        const { user, setup_complete } = response.data;
+
+                        const authUser = {
+                            message: "Login Successful",
+                            token: token,
+                            user: user,
+                            setup_complete: setup_complete
+                        };
+
+                        sessionStorage.setItem('authUser', JSON.stringify(authUser));
+
+                        // 3. Redirigir
+                        if (setup_complete === false) {
+                            navigate("/settings");
+                        } else {
+                            navigate("/dashboard");
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Error fetching profile", err);
+                        navigate('/login?error=Failed+to+fetch+profile');
+                    });
+            });
 
         } else {
             navigate('/login?error=Invalid+google+token');
